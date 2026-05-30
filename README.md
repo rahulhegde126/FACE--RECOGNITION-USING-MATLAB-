@@ -1,40 +1,65 @@
 # Non-ML Face Authentication System
 
-This repository contains a face authentication script implemented purely in **MATLAB**.
+A purely Digital Signal Processing (DSP) approach to face matching implemented in **MATLAB**. 
 
-The system uses:
+This project strictly avoids Machine Learning (ML) techniques, relying instead on classical image processing, spatial feature extraction, and spectral analysis to authenticate a user.
 
-- A **Webcam** for capturing live reference and test images.
-- **Digital Signal Processing (DSP)** techniques exclusively—no Machine Learning (ML) is used.
-- **Image Preprocessing filters** (Wiener filtering, Adaptive Histogram Equalization) to normalize inputs.
+## How It Works
 
-There are three primary feature extraction metrics combined for the final evaluation:
+The authentication pipeline consists of three main stages:
 
-1. **LBP (Local Binary Patterns)** — for texture correlation.
-2. **2D DFT (Discrete Fourier Transform)** — for low-frequency structural matching.
-3. **SSIM (Structural Similarity Index)** — calculated via custom Gaussian window filtering.
+1. **Image Capture & Preprocessing**
+   - Captures live reference and test images via Webcam.
+   - Converts to Grayscale and standardizes the size to 256×256.
+   - Applies **Wiener filtering** (noise reduction) and **Adaptive Histogram Equalization** (local contrast enhancement).
 
-<img width="800" alt="Face Comparison Figure" src="https://via.placeholder.com/800x400?text=Insert+Face+Comparison+Figure+Here" />
+2. **Feature Extraction**
+   - **LBP (Local Binary Patterns):** Extracts micro-texture features of the face.
+   - **2D DFT (Discrete Fourier Transform):** Extracts the low-frequency spectral components (32×32) to capture broad facial geometry in the frequency domain.
+
+3. **Similarity Scoring**
+   - Calculates **SSIM (Structural Similarity Index)** using a custom Gaussian window to evaluate luminance, contrast, and structure.
+   - Calculates **NCC (Normalized Cross-Correlation)** for both the LBP and DFT features.
+
+---
+
+## Requirements
+
+To run this script, you need MATLAB installed with the following add-ons:
+- Image Processing Toolbox
+- Computer Vision Toolbox
+- MATLAB Support Package for USB Webcams
+
+---
+
+## Usage
+
+1. Open and run the script in the MATLAB environment.
+2. Look at the webcam and press **Enter** (or any key) in the command window when prompted to capture the **Reference Image**.
+3. Look at the webcam again and press **Enter** when prompted to capture the **Test Image**.
+4. The command window will output the individual metric scores and display a final `✅ Faces Match!` or `❌ Faces Do Not Match.` verdict.
+5. A figure window will automatically open showing the original faces side-by-side with their 2D DFT spectra.
 
 ---
 
 ## System Parameters & Weights
 
 ```matlab
-%% Preprocessing Dimensions
-IMAGE_WIDTH         = 256;      % Resized width
-IMAGE_HEIGHT        = 256;      % Resized height
-WIENER_WINDOW       = [5 5];    % Noise reduction filter size
+% Preprocessing
+Image_Size = [256, 256];
+Wiener_Window = [5 5];
 
-%% Feature Extraction
-DFT_LOW_FREQ_SIZE   = 32;       % Extracts 1:32 x 1:32 low-frequency components
-SSIM_GAUSS_WINDOW   = [11 11];  % Gaussian filter window
-SSIM_SIGMA          = 1.5;      % Gaussian filter standard deviation
+% DFT Extraction
+Low_Freq_Grid = 1:32;
 
-%% Final Match Score Weights
-WEIGHT_SSIM         = 0.4;      % 40% weight
-WEIGHT_LBP          = 0.3;      % 30% weight
-WEIGHT_DFT          = 0.3;      % 30% weight
+% SSIM Calculation
+Gaussian_Window = [11 11];
+Gaussian_Sigma = 1.5;
 
-%% Authentication Threshold
-MATCH_THRESHOLD     = 0.70;     % > 70% required for a positive match
+% Final Match Score Weights
+Weight_SSIM = 0.4;  % 40% contribution
+Weight_LBP  = 0.3;  % 30% contribution
+Weight_DFT  = 0.3;  % 30% contribution
+
+% Authentication Threshold
+Match_Threshold = 0.70; % > 70% required for a positive match
